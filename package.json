@@ -8,7 +8,7 @@
         "test": "jest --detectOpenHandles --logHeapUsage --runInBand --verbose",
         "build": "webpack",
         "example": "node ./examples/index.js",
-        "start": "node ./src/index.js"
+        "start-local": "babel-node ./src/index.js"
     },
     "repository": {
         "type": "git",
@@ -32,5 +32,8 @@
         "babel-loader": "^8.1.0",
         "webpack": "^4.42.1",
         "webpack-cli": "^3.3.11"
+    },
+    "dependencies": {
+        "xml2js": "^0.4.23"
     }
 }
