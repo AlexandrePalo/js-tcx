@@ -22,6 +22,7 @@ let config = {
     },
     mode: 'production',
     target: 'node',
+    plugins: [],
 }
 
 module.exports = config
