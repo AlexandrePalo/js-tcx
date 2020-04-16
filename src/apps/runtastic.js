@@ -2,7 +2,7 @@ import fetch, { Headers } from 'node-fetch'
 import crypto from 'crypto-js'
 import moment from 'moment'
 
-const sendPostAPI = (url, body, accessToken = null) => {
+const post = (url, body, accessToken = null) => {
     const date = moment().format('YYYY-MM-DD HH:mm:ss')
     const appKey = 'com.runtastic.android'
     const appSecret =
@@ -33,33 +33,43 @@ const sendPostAPI = (url, body, accessToken = null) => {
 }
 
 const authenticate = (email, password) => {
-    return sendPostAPI(
-        'https://appws.runtastic.com/webapps/services/auth/login',
-        {
-            email,
-            password,
-        }
-    ).then((res) => res)
+    return post('https://appws.runtastic.com/webapps/services/auth/login', {
+        email,
+        password,
+    }).then((res) => res)
 }
 
-const sessions = (authObj) => {
-    return sendPostAPI(
+const sessions = async (user) => {
+    // res.sessions Array
+    return post(
         'https://appws.runtastic.com/webapps/services/runsessions/v3/sync',
         { perPage: 100, syncedUntil: 0 },
-        authObj.accessToken
+        user.accessToken
     ).then((res) => res)
 }
 
-const session = (id, authObj) => {
-    return sendPostAPI(
+const session = (id, user) => {
+    return post(
         `https://appws.runtastic.com/webapps/services/runsessions/v2/${id}/details`,
         {
             includeGpsTrace: { include: true, version: 1 },
             includeHeartRateTrace: { include: true, version: 1 },
             includeHeartRateZones: true,
         },
-        authObj.accessToken
-    ).then((res) => res)
+        user.accessToken
+    ).then((res) => {
+        if (res.runSessions.gpsData.trace) {
+            res.runSessions.gpsData.data = getGpsPointsFromTrace(
+                res.runSessions.gpsData.trace
+            )
+        }
+        if (res.runSessions.heartRateData.trace) {
+            res.runSessions.heartRateData.data = getHeartRatePointsFromTrace(
+                res.runSessions.heartRateData.trace
+            )
+        }
+        return res
+    })
 }
 
 const getGpsPointsFromTrace = (trace) => {
@@ -69,7 +79,7 @@ const getGpsPointsFromTrace = (trace) => {
     bytes = bytes.slice(4)
 
     /** Points data, each 38 bytes
-     * time: long 8 bytes, epoch ms
+     * time: long 8 bytes, epoch ms // BIGINT must be parse to Int
      * longitude: float 4 bytes, °
      * latitude: float 4 bytes, °
      * elevation: float 4 bytes, m
@@ -112,12 +122,12 @@ const getGpsPointsFromTrace = (trace) => {
 
 const getHeartRatePointsFromTrace = (trace) => {
     let bytes = Buffer.from(trace, 'base64')
-    // Nb of Gps points
+    // Nb of heartRate points
     const length = bytes.readInt32BE(0)
     bytes = bytes.slice(4)
 
     /** Points data, each 18 bytes
-     * time: long 8 bytes, epoch ms
+     * time: long 8 bytes, epoch ms // BIGINT must be parse to Int
      * heartRate:
      * ?: 1 byte
      * elasped: int 4 bytes, ms
@@ -143,10 +153,4 @@ const getHeartRatePointsFromTrace = (trace) => {
     return points
 }
 
-export {
-    authenticate,
-    sessions,
-    session,
-    getGpsPointsFromTrace,
-    getHeartRatePointsFromTrace,
-}
+export { authenticate, sessions, session }

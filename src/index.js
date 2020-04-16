@@ -1,64 +1,38 @@
 import path from 'path'
-import parseXml from './parser'
-import { buildTraining, buildOneActivityOneLapTraining } from './builder'
-import { exportToDelimitedFile } from './export'
 require('dotenv').config()
 
-import {
-    authenticate,
-    sessions,
-    session,
-    getGpsPointsFromTrace,
-    getHeartRatePointsFromTrace,
-} from './runtastic'
-import tcxBuilder from './tcx'
+import { authenticate, sessions, session } from './apps/runtastic'
+import { createTcx, readTcx } from './files/tcx'
+import { createDelimited } from './files/delimited'
 
-tcxBuilder({})
-
-/*
 authenticate(process.env.RUNTASTIC_EMAIL, process.env.RUNTASTIC_PASSWORD).then(
-    (r) => {
-        sessions(r).then((s) => {
-            const lastS = s.sessions[s.sessions.length - 1]
-
-            session(lastS.id, r).then((t) => {
-                console.log(t.heartRateData)
+    (user) => {
+        sessions(user).then((r) => {
+            const s = r.sessions[0]
+            session(s.id, user).then((t) => {
+                createTcx(path.join(__dirname, '../temp', '1.tcx'), {
+                    gpsPoints: t.runSessions.gpsData.data,
+                    id: t.runSessions.id,
+                    startTime: t.runSessions.startTime,
+                    calories: t.runSessions.calories,
+                    distance: t.runSessions.distance,
+                    duration: t.runSessions.duration,
+                    avgHeartRate: t.runSessions.heartRateData.avg,
+                    maxHeartRate: t.runSessions.heartRateData.avg,
+                    maxSpeed: t.runSessions.speedData.avg,
+                }).then((u) => {
+                    readTcx(u).then((v) => {
+                        console.log(
+                            createDelimited(
+                                v,
+                                path.join(__dirname, '../temp', '1.tsv'),
+                                '\t',
+                                ','
+                            )
+                        )
+                    })
+                })
             })
         })
     }
 )
-*/
-
-/*
-const defaultOptions = {
-    calc: false,
-    activityData: true,
-    lapData: true,
-    trackPointsData: true,
-}
-
-const f = path.join(
-    __dirname,
-    '../examples',
-    '2020-04-14 3636027654 Running Runtastic.tcx'
-)
-
-parseXml(f).then((r) => {
-    const a = buildOneActivityOneLapTraining(
-        r.TrainingCenterDatabase.Activities[0],
-        {
-            calc: false,
-            activityData: true,
-            lapData: true,
-            trackPointsData: true,
-        }
-    )
-    exportToDelimitedFile(
-        a,
-        path.join(__dirname, '../temp'),
-        '2020-04-14 3636027654 Running Runtastic.tsv',
-        '\t',
-        ','
-    )
-})
-*/
