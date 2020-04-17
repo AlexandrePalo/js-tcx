@@ -3,6 +3,41 @@ import { create } from 'xmlbuilder2'
 import parseXml from '../utils/parser'
 import moment from 'moment-timezone'
 
+/**
+ * TODO
+ *      Handle heartRatePoints in createTcx and readTcx
+ */
+
+/**
+ * Create a .tcx at the given path, file from data
+ *
+ * @param {string} path - Absolute path of create file, should provide the extension too (.tcx)
+ * @param {Object} {
+ *         {Array of Object} gpsPoints - Array of gps point
+ *              {string} time - epoch ms GMT
+ *              {number} latitude - °
+ *              {number} longitude - °
+ *              {number} elevation - m
+ *              {number} distance - m
+ *              {number} speed - km/h
+ *
+ *         {Array of Object} heartRatePoints - Array of heart rate point
+ *              // TODO
+ *
+ *         {string} id
+ *         {number} startTime - epoch ms GMT
+ *         {number} calories - kcal
+ *         {number} distance - m
+ *         {number} duration - ms
+ *
+ *         {number} avgHeartRate - bpm
+ *         {number} maxHeartRate - bpm
+ *
+ *         {number} avgSpeed - km/h
+ *         {number} maxSpeed - km/h
+ *     }
+ * @returns {string} absolute path of file created
+ */
 const createTcx = async (
     path,
     {
@@ -112,6 +147,28 @@ const createTcx = async (
     return fs.writeFile(path, xml.end({ prettyPrint: true })).then((r) => path)
 }
 
+/**
+ * Read a tcx file and create an JS object
+ *
+ * @param {string} path - absolute path of the file
+ * @returns {Object} js object containing data
+ *      {Object} activity
+ *          {string} id
+ *          {string} sport
+ *          {Object} lap
+ *              {string} startTime - formatted YYYY-MM-DD[T]HH:mm:ss[Z], timezone GMT
+ *              {number} totalTime - s
+ *              {number} distance - m
+ *              {number} maximumSpeed - m/s
+ *              {number} calories - kcal
+ *              {Array of Object} trackPoints
+ *                  {string} time - formatted YYYY-MM-DD[T]HH:mm:ss[Z], timezone GMT
+ *                  {number} latitude - °
+ *                  {number} longitude - °
+ *                  {number} altitude - m
+ *                  {number} distance - m
+ *                  {number} speed - m/s
+ */
 const readTcx = async (path) => {
     return parseXml(path).then((r) => ({
         activity: {

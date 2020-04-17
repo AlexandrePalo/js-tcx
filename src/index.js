@@ -5,8 +5,8 @@ import { authenticate, sessions, session } from './apps/runtastic'
 import { createTcx, readTcx } from './files/tcx'
 import { createDelimited } from './files/delimited'
 
-authenticate(process.env.RUNTASTIC_EMAIL, process.env.RUNTASTIC_PASSWORD).then(
-    (user) => {
+authenticate(process.env.RUNTASTIC_EMAIL, process.env.RUNTASTIC_PASSWORD)
+    .then((user) => {
         sessions(user).then((r) => {
             const s = r.sessions[0]
             session(s.id, user).then((t) => {
@@ -34,5 +34,7 @@ authenticate(process.env.RUNTASTIC_EMAIL, process.env.RUNTASTIC_PASSWORD).then(
                 })
             })
         })
-    }
-)
+    })
+    .catch((e) => {
+        throw new Error('Error during authentication process.')
+    })

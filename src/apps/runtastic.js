@@ -2,6 +2,21 @@ import fetch, { Headers } from 'node-fetch'
 import crypto from 'crypto-js'
 import moment from 'moment'
 
+/**
+ * TODO
+ *
+ */
+
+/**
+ * RUNTASTIC APP WORKFLOW
+ *
+ * All API calls are done via "post" function.
+ *  "authenticate" --> get accessToken.
+ *  "sessions" with accessToken --> get list of all session.
+ *  "session" with session id and authToken --> get details of a session,
+ *      including gps and heart rate data points decoded.
+ */
+
 const post = (url, body, accessToken = null) => {
     const date = moment().format('YYYY-MM-DD HH:mm:ss')
     const appKey = 'com.runtastic.android'
@@ -27,22 +42,25 @@ const post = (url, body, accessToken = null) => {
         method: 'POST',
         body: JSON.stringify(body),
         headers,
-    })
-        .then((res) => res.json())
-        .catch((err) => console.log(err))
+    }).then((res) => res.json())
 }
 
 const authenticate = (email, password) => {
-    return post('https://appws.runtastic.com/webapps/services/auth/login', {
+    return post(process.env.RUNTASTIC_AUTHENTICATE_URL, {
         email,
         password,
-    }).then((res) => res)
+    }).then((res) => {
+        if (!res.accessToken) {
+            throw new Error('Email / password error, no accessToken provided.')
+        }
+        return res
+    })
 }
 
 const sessions = async (user) => {
     // res.sessions Array
     return post(
-        'https://appws.runtastic.com/webapps/services/runsessions/v3/sync',
+        `${process.env.RUNTASTIC_RUNSESSIONS_V3_URL}/sync`,
         { perPage: 100, syncedUntil: 0 },
         user.accessToken
     ).then((res) => res)
@@ -50,7 +68,7 @@ const sessions = async (user) => {
 
 const session = (id, user) => {
     return post(
-        `https://appws.runtastic.com/webapps/services/runsessions/v2/${id}/details`,
+        `${process.env.RUNTASTIC_RUNSESSIONS_V2_URL}/${id}/details`,
         {
             includeGpsTrace: { include: true, version: 1 },
             includeHeartRateTrace: { include: true, version: 1 },
