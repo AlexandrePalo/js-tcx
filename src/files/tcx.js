@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { create } from 'xmlbuilder2'
-import parseXml from '../utils/parser'
+import { parseXml } from '../utils/parser'
 import moment from 'moment-timezone'
 
 /**
@@ -36,7 +36,7 @@ import moment from 'moment-timezone'
  *         {number} avgSpeed - km/h
  *         {number} maxSpeed - km/h
  *     }
- * @returns {string} Absolute path of created file
+ * @returns {Promise string} Absolute path of created file
  */
 const createTcx = async (
     path,
@@ -151,7 +151,7 @@ const createTcx = async (
  * Read a tcx file and create an JS object
  *
  * @param {string} path - absolute path of the file
- * @returns {Object} js object containing data
+ * @returns {Promise Object} js object containing data
  *      {Object} activity
  *          {string} id
  *          {string} sport

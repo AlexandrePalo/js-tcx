@@ -1,21 +1,17 @@
-import fs from 'fs'
+import { promises as fs } from 'fs'
 import { Parser } from 'xml2js'
 
-const parseXml = (filePath) => {
+/**
+ * Parse xml file at given path into js Object
+ *
+ * @param {string} path - Absolute file path
+ * @returns {Promise Object} xml data
+ */
+const parseXml = (path) => {
     const parser = new Parser()
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                reject(err)
-            }
-            parser.parseString(data, (err, result) => {
-                if (err) {
-                    reject(err)
-                }
-                resolve(result)
-            })
-        })
+    return fs.readFile(path).then((data) => {
+        return parser.parseStringPromise(data)
     })
 }
 
-export default parseXml
+export { parseXml }

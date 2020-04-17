@@ -17,6 +17,14 @@ import moment from 'moment'
  *      including gps and heart rate data points decoded.
  */
 
+/**
+ * Fetch url with POST method, providing basic headers and specified body and auth token
+ *
+ * @param {string} url
+ * @param {Object} body
+ * @param {string} [accessToken=null] - Not needed for some routes
+ * @returns {Promise Object} JSON data received
+ */
 const post = (url, body, accessToken = null) => {
     const date = moment().format('YYYY-MM-DD HH:mm:ss')
     const appKey = 'com.runtastic.android'
@@ -45,6 +53,20 @@ const post = (url, body, accessToken = null) => {
     }).then((res) => res.json())
 }
 
+/**
+ * Authenticate from Runtastic API, get auth token and user info
+ *
+ * @param {*} email
+ * @param {*} password
+ * @returns {Object} User and auth info
+ *      {string} userId
+ *      {string} uidt
+ *      {string} refreshToken
+ *      {string} accessToken
+ *      {string} expiresIn
+ *      {string} tokenType
+ * @throws Error if no accessToken provided from the API
+ */
 const authenticate = (email, password) => {
     return post(process.env.RUNTASTIC_AUTHENTICATE_URL, {
         email,
@@ -57,6 +79,12 @@ const authenticate = (email, password) => {
     })
 }
 
+/**
+ * Fetch list of session for the given user
+ *
+ * @param {Object} user - Must contains accessToken
+ * @returns {Promise Array of Object} Array of session object, not fully detailed
+ */
 const sessions = async (user) => {
     // res.sessions Array
     return post(
@@ -66,6 +94,13 @@ const sessions = async (user) => {
     ).then((res) => res)
 }
 
+/**
+ * Fetch full session object for the given session id
+ *
+ * @param {string} id
+ * @param {Object} user - Must contains accessToken
+ * @returns {Promise Object} Session object
+ */
 const session = (id, user) => {
     return post(
         `${process.env.RUNTASTIC_RUNSESSIONS_V2_URL}/${id}/details`,
@@ -90,6 +125,18 @@ const session = (id, user) => {
     })
 }
 
+/**
+ * Build gps points array from encoded trace
+ *
+ * @param {string} trace - Base64 encoded trace
+ * @returns {Array of Object} Gps points
+ *      {string} time - epoch ms GMT
+ *      {number} latitude - °
+ *      {number} longitude - °
+ *      {number} elevation - m
+ *      {number} distance - m
+ *      {number} speed - km/h
+ */
 const getGpsPointsFromTrace = (trace) => {
     let bytes = Buffer.from(trace, 'base64')
     // Nb of Gps points
@@ -138,6 +185,16 @@ const getGpsPointsFromTrace = (trace) => {
     return points
 }
 
+/**
+ * Build heart rate points array from encoded trace
+ *
+ * @param {string} trace - Base64 encoded trace
+ * @returns {Array of Object} Heart rate points
+ *      {string} time - epoch ms GMT
+ *      {number} heartRate - bpm
+ *      {number} elapsed - ms
+ *      {number} distance - m
+ */
 const getHeartRatePointsFromTrace = (trace) => {
     let bytes = Buffer.from(trace, 'base64')
     // Nb of heartRate points
@@ -146,7 +203,7 @@ const getHeartRatePointsFromTrace = (trace) => {
 
     /** Points data, each 18 bytes
      * time: long 8 bytes, epoch ms // BIGINT must be parse to Int
-     * heartRate:
+     * heartRate: int 1 byte, bpm
      * ?: 1 byte
      * elasped: int 4 bytes, ms
      * distance: int 4 bytes, m
