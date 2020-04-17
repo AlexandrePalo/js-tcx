@@ -1,16 +1,20 @@
 import fs from 'fs'
 
+/**
+ * Create a delimited file (csv, tsv, ...) at given path built with data
+ *
+ * @param {Object} object - Data
+ * @param {string} path - Absolute path of created file, should provide the extension (.tsv, .csv, ...)
+ * @param {string} [delimiter=';'] - File delimiter
+ * @param {string} [decimalDelimiter='.'] - Decimal delimiter in file
+ * @returns {string} Absolute path of created file
+ */
 const createDelimited = (
     object,
     path,
     delimiter = ';',
     decimalDelimiter = '.'
 ) => {
-    /**
-     * One activity
-     * One lap
-     */
-
     const logger = fs.createWriteStream(path, {
         flags: 'a',
     })

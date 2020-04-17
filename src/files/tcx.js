@@ -11,7 +11,7 @@ import moment from 'moment-timezone'
 /**
  * Create a .tcx at the given path, file from data
  *
- * @param {string} path - Absolute path of create file, should provide the extension too (.tcx)
+ * @param {string} path - Absolute path of created file, should provide the extension (.tcx)
  * @param {Object} {
  *         {Array of Object} gpsPoints - Array of gps point
  *              {string} time - epoch ms GMT
@@ -36,7 +36,7 @@ import moment from 'moment-timezone'
  *         {number} avgSpeed - km/h
  *         {number} maxSpeed - km/h
  *     }
- * @returns {string} absolute path of file created
+ * @returns {string} Absolute path of created file
  */
 const createTcx = async (
     path,
