@@ -136,3 +136,5 @@ dist
 
 # IntelliJ
 /out/
+
+.DS_Store
